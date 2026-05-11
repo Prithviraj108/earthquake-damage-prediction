@@ -69,11 +69,11 @@ earthquake-damage-prediction/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  ML PIPELINE                                 │
+│                  ML PIPELINE                                │
 │                                                             │
 │  1. Data Loading      →  Kaggle API / Synthetic fallback    │
 │  2. EDA               →  Distributions, correlations,       │
-│                           material analysis                  │
+│                           material analysis                 │
 │  3. Feature Engg.     →  4 new derived features             │
 │  4. Model Training    →  3 classifiers, 5-fold CV           │
 │  5. Best Model        →  Confusion matrix, importances      │
