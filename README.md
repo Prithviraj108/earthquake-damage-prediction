@@ -32,11 +32,11 @@ The problem is inspired by the **2015 Nepal Gorkha Earthquake** — one of the d
 
 | Role | Name |
 |---|---|
-| Intern | [Your Name] |
-| Intern | [Teammate Name] |
-| Mentor | [Mentor Name] |
-| Organization | [Organization Name] |
-| Duration | [Start Date] – [End Date] |
+| Intern | Prithviraj |
+| Intern | Uday, Priyanka, Nirmala |
+| Mentor | Shravani |
+| Organization | DataMites |
+| Duration | 10th Nov 2024 – 25th Nov 2024 |
 
 ---
 
