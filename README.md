@@ -1,30 +1,31 @@
 # earthquake-damage-prediction
 ML internship project to predict earthquake structural damage grades (1–3) using XGBoost, Random Forest &amp; Logistic Regression on Nepal building data. Includes EDA, feature engineering, and a Colab-ready notebook.
 
-# 🏚️ Earthquake Damage Prediction
+# 🏚️ Richter's Predictor: Modeling Earthquake Damage
 > **Internship Project** — Data Science & Machine Learning
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![XGBoost](https://img.shields.io/badge/Model-XGBoost-orange?logo=xgboost)](https://xgboost.readthedocs.io/)
-[![Jupyter](https://img.shields.io/badge/Notebook-Jupyter-orange?logo=jupyter)](https://jupyter.org/)
+[![XGBoost](https://img.shields.io/badge/Model-XGBoost-orange)](https://xgboost.readthedocs.io/)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Competition](https://img.shields.io/badge/DrivenData-Richter's%20Predictor-blue)](https://www.drivendata.org/competitions/57/nepal-earthquake/)
 
 ---
 
 ## 📖 About the Project
 
-This project was built during our **Data Science internship** as a hands-on exercise in applied machine learning. The objective was to predict the **structural damage grade** of buildings following an earthquake, based on building characteristics and geographic features.
+This project was built during our **Data Science internship** as a hands-on exercise in applied machine learning. The dataset is from the **DrivenData "Richter's Predictor"** competition, based on the 2015 Nepal Gorkha Earthquake — one of the most devastating earthquakes in the region's modern history.
 
-The problem is inspired by the **2015 Nepal Gorkha Earthquake** — one of the deadliest earthquakes in Nepal's history. Accurately predicting damage levels helps disaster response teams prioritize resources, guide relief efforts, and inform future construction policies.
+The data was collected by **Kathmandu Living Labs** and the **Central Bureau of Statistics of Nepal**, making it one of the largest post-disaster datasets ever assembled.
 
 ### 🎯 Target Variable — Damage Grade
 
-| Grade | Meaning |
-|-------|---------|
-| **1** | Low Damage |
-| **2** | Medium Damage |
-| **3** | High / Complete Destruction |
+| Grade | Meaning | Count | Share |
+|-------|---------|-------|-------|
+| 1 | Low damage | 25,124 | 9.6% |
+| 2 | Medium damage | 148,259 | 56.9% |
+| 3 | Complete destruction | 87,218 | 33.5% |
+
+> The dataset is imbalanced — **micro-averaged F1** is used as the evaluation metric (per DrivenData competition rules).
 
 ---
 
@@ -45,125 +46,107 @@ The problem is inspired by the **2015 Nepal Gorkha Earthquake** — one of the d
 ```
 earthquake-damage-prediction/
 │
-├── 📓 Earthquake_Damage_Prediction.ipynb   ← Main Jupyter Notebook (run on Colab)
-├── 🐍 earthquake_damage_prediction.py      ← Standalone Python script
+├── 📓 Earthquake_Damage_Prediction.ipynb   ← Main Jupyter Notebook (Colab-ready)
 ├── 📄 README.md                            ← You are here
 │
 ├── data/
-│   └── earthquake_data.csv                 ← Dataset (auto-downloaded or synthetic)
-│
-├── outputs/
-│   ├── eda_overview.png                    ← Grade distribution, age, foundation plots
-│   ├── correlation_heatmap.png             ← Feature correlation matrix
-│   ├── superstructure_analysis.png         ← Damage by building material
-│   ├── model_comparison.png               ← F1-macro & accuracy across models
-│   └── best_model_analysis.png            ← Confusion matrix + feature importances
+│   ├── train_values.csv                    ← 260,601 buildings × 38 features
+│   └── train_labels.csv                   ← building_id + damage_grade (target)
 │
 └── models/
-    └── best_model_xgboost.pkl              ← Saved best model (joblib)
+    └── best_model_xgboost.pkl              ← Saved best model
 ```
+
+---
+
+## 📊 Dataset
+
+- **Source:** 2015 Nepal Gorkha Earthquake post-disaster survey
+- **Collected by:** Kathmandu Living Labs & Central Bureau of Statistics, Nepal
+- **Records:** 260,601 buildings
+- **Features:** 38 (geographic IDs, structural characteristics, superstructure materials, secondary use flags)
+- **Missing values:** 0
+- **Files:** `train_values.csv` (features) + `train_labels.csv` (target)
+
+### Feature Groups
+
+| Group | Features |
+|---|---|
+| Geographic | `geo_level_1_id`, `geo_level_2_id`, `geo_level_3_id` |
+| Structural | `count_floors_pre_eq`, `age`, `area_percentage`, `height_percentage` |
+| Construction | `foundation_type`, `roof_type`, `ground_floor_type`, `other_floor_type`, `plan_configuration`, `position` |
+| Superstructure (binary) | `has_superstructure_adobe_mud`, `_mud_mortar_stone`, `_rc_engineered`, + 8 more |
+| Secondary use (binary) | `has_secondary_use`, `_agriculture`, `_hotel`, `_school`, + 7 more |
+| Ownership | `legal_ownership_status`, `count_families` |
 
 ---
 
 ## 🔄 Pipeline Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                  ML PIPELINE                                │
-│                                                             │
-│  1. Data Loading      →  Kaggle API / Synthetic fallback    │
-│  2. EDA               →  Distributions, correlations,       │
-│                           material analysis                 │
-│  3. Feature Engg.     →  4 new derived features             │
-│  4. Model Training    →  3 classifiers, 5-fold CV           │
-│  5. Best Model        →  Confusion matrix, importances      │
-│  6. Predictions       →  Demo for 3 building scenarios      │
-└─────────────────────────────────────────────────────────────┘
+1. Data Loading      →  Merge train_values.csv + train_labels.csv (260,601 rows)
+2. EDA               →  Class distribution, age histogram, foundation & material analysis,
+                         correlation heatmap
+3. Feature Engg.     →  5 new derived features (age_bucket, total_superstructures,
+                         area_height_ratio, floor_density, total_secondary_uses)
+4. Model Training    →  3 classifiers with 5-fold stratified CV (F1-micro)
+5. Best Model        →  Confusion matrix, feature importance ranking
+6. Predictions       →  Demo predictions for sample building scenarios
 ```
 
 ---
 
-## 🔬 Feature Engineering
+## 📈 Results
 
-We created four additional features beyond the raw dataset:
+| Model | CV F1-micro | Test F1-micro | Test Accuracy |
+|---|---|---|---|
+| Logistic Regression | ~0.57 ± 0.001 | ~0.57 | ~57% |
+| Random Forest | ~0.71 ± 0.002 | ~0.71 | ~71% |
+| **XGBoost ★** | **~0.75 ± 0.001** | **~0.75** | **~75%** |
 
-| Feature | Formula | Insight |
-|---|---|---|
-| `age_bucket` | Age grouped into 5 risk tiers | Older buildings = higher risk |
-| `total_superstructures` | Sum of all material flags | Diversified materials → resilience |
-| `area_height_ratio` | area% / height% | Squat buildings → more stable |
-| `floor_density` | floors / area% | Tall, narrow buildings → higher risk |
+**XGBoost** was selected as the final model.
 
----
-
-## 📊 Results
-
-### Model Comparison
-
-| Model | CV F1-macro | Test F1-macro | Test Accuracy | Time |
-|---|---|---|---|---|
-| Logistic Regression | 0.743 ± 0.003 | 0.740 | 74.9% | ~5s |
-| Random Forest | 0.807 ± 0.004 | 0.805 | 81.3% | ~25s |
-| **XGBoost ★** | **0.825 ± 0.004** | **0.817** | **82.3%** | ~35s |
-
-> **XGBoost** was selected as the final model based on highest F1-macro score across both cross-validation and held-out test set.
-
-### Classification Report (XGBoost on Test Set)
+### Classification Report (XGBoost, Test Set)
 
 ```
-                    precision  recall  f1-score  support
-Grade 1 (Low)         0.89     0.89     0.89     4,219
-Grade 2 (Medium)      0.71     0.74     0.73     3,164
-Grade 3 (High)        0.85     0.82     0.83     2,617
+                       precision  recall  f1-score  support
+Grade 1 (Low)            0.62     0.39     0.48      5,025
+Grade 2 (Medium)         0.74     0.86     0.80     29,652
+Grade 3 (Complete)       0.72     0.62     0.67     17,444
 
-accuracy                         0.82    10,000
-macro avg             0.82     0.82     0.82    10,000
+accuracy                           0.75    52,121
+macro avg                0.69     0.62     0.65     52,121
+micro avg                0.75     0.75     0.75     52,121
 ```
 
 ---
 
 ## 🔍 Key Findings
 
-Through our analysis, we found several strong patterns in the data:
-
-- **Age is the single strongest predictor** — buildings older than 70 years show dramatically higher rates of Grade 3 (complete destruction).
-- **Foundation type is critical** — mud-mortar-stone foundations are the highest-risk category, while RC (reinforced concrete) foundations protect buildings significantly.
-- **Adobe mud and mud-mortar-stone superstructures** are heavily correlated with the worst damage outcomes.
-- **RC engineered superstructures** are the most protective material type and reduce predicted damage grade considerably.
-- **Geographic location** introduces additional variance even after controlling for building characteristics, suggesting local soil and topographic effects.
+- **Building age** is the strongest single predictor — older buildings suffer dramatically more damage.
+- **Foundation type** is highly predictive: mud-mortar-stone correlates with highest damage; reinforced concrete is most protective.
+- **Adobe mud and mud-mortar-stone superstructures** are heavily linked to complete destruction.
+- **RC engineered superstructures** are the most protective material type.
+- **Grade 1 (Low damage)** is hardest to classify — only 9.6% of buildings, leading to recall of ~39%.
+- Geographic region adds significant predictive signal even after structural features.
 
 ---
 
-## 🚀 Getting Started
+## 🚀 How to Run
 
-### Run on Google Colab (Recommended)
-1. Download `Earthquake_Damage_Prediction.ipynb`
-2. Go to [colab.research.google.com](https://colab.research.google.com)
-3. File → Upload Notebook → select the `.ipynb` file
-4. Run All Cells
+### On Google Colab (recommended)
+1. Upload `train_values.csv` and `train_labels.csv` to your Colab session
+2. Upload `Earthquake_Damage_Prediction.ipynb`
+3. Run all cells
 
-### Run Locally
+### Locally
 
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/earthquake-damage-prediction.git
 cd earthquake-damage-prediction
-
-# Install dependencies
-pip install pandas numpy matplotlib seaborn scikit-learn xgboost kagglehub joblib
-
-# Run the pipeline
-python earthquake_damage_prediction.py
+pip install pandas numpy matplotlib seaborn scikit-learn xgboost joblib
+jupyter notebook Earthquake_Damage_Prediction.ipynb
 ```
-
-### Dataset
-
-The notebook automatically downloads the dataset from Kaggle if credentials are available. Otherwise, a **realistic synthetic dataset** mirroring the original schema is generated automatically — no setup needed.
-
-To use the real Kaggle dataset:
-1. Create a Kaggle account at [kaggle.com](https://www.kaggle.com)
-2. Go to Account → Create API Token → download `kaggle.json`
-3. Place it at `~/.kaggle/kaggle.json`
 
 ---
 
@@ -172,58 +155,30 @@ To use the real Kaggle dataset:
 | Tool | Purpose |
 |---|---|
 | Python 3.8+ | Core language |
-| Pandas & NumPy | Data manipulation |
+| Pandas & NumPy | Data wrangling |
 | Matplotlib & Seaborn | Visualizations |
-| Scikit-learn | ML pipeline, preprocessing, baselines |
-| XGBoost | Final model |
-| Kagglehub | Dataset download |
-| Joblib | Model serialization |
-| Jupyter / Google Colab | Notebook environment |
-
----
-
-## 📈 Sample Predictions
-
-```
-Scenario: Old mud-mortar building (80 years, adobe superstructure)
-→ Grade 3 — High / Complete Destruction
-   Probabilities: Grade 1: 2.1%  |  Grade 2: 11.4%  |  Grade 3: 86.5%
-
-Scenario: New RC engineered building (5 years, reinforced concrete)
-→ Grade 1 — Low Damage
-   Probabilities: Grade 1: 91.2%  |  Grade 2: 7.6%  |  Grade 3: 1.2%
-
-Scenario: Mid-age brick building (35 years, cement mortar brick)
-→ Grade 2 — Medium Damage
-   Probabilities: Grade 1: 22.3%  |  Grade 2: 59.8%  |  Grade 3: 17.9%
-```
+| Scikit-learn | Preprocessing, baselines, cross-validation |
+| XGBoost | Best-performing model |
+| Joblib | Model persistence |
+| Google Colab | Development environment |
 
 ---
 
 ## 💡 What We Learned
 
-This internship project gave us hands-on experience with the **end-to-end machine learning workflow**:
-
-- Handling real-world messy datasets with mixed types and skewed distributions
-- The importance of **feature engineering** — our 4 derived features improved F1 by ~2%
-- **Cross-validation over a simple train/test split** to get reliable model estimates
-- Why **F1-macro** matters more than accuracy for imbalanced multi-class problems
-- XGBoost's robustness and speed advantage over Random Forest for tabular data
-- Communicating findings clearly through visualizations and structured reports
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+- How to handle large real-world datasets (260K rows, 38 features, zero missing values)
+- Why **micro-F1** is more appropriate than accuracy for imbalanced multi-class problems
+- The importance of feature engineering — our derived features improved F1 by ~2%
+- That XGBoost consistently outperforms Random Forest on structured/tabular data
+- How to build a clean, reproducible ML pipeline end-to-end in a Jupyter notebook
 
 ---
 
 ## 🙏 Acknowledgements
 
-- Dataset by [prithvirajshukla](https://www.kaggle.com/datasets/prithvirajshukla/earthquake-damage-prediction) on Kaggle
-- Inspired by the [DrivenData Richter's Predictor competition](https://www.drivendata.org/competitions/57/nepal-earthquake/)
-- Thanks to our mentor and the internship organization for guidance throughout this project
+- Dataset & competition: [DrivenData — Richter's Predictor](https://www.drivendata.org/competitions/57/nepal-earthquake/)
+- Data collected by: [Kathmandu Living Labs](http://www.kathmandulivinglabs.org/) & [Central Bureau of Statistics Nepal](https://cbs.gov.np/)
+- Thanks to our mentor and internship organization for guidance throughout this project
 
 ---
 
